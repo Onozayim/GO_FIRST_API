@@ -1,27 +1,13 @@
 package posts
 
 import (
-	"api/service/users"
+	"api/models"
 	"context"
 	"database/sql"
 	"fmt"
 )
 
-type Post struct {
-	Id      int64  `json:"id"`
-	Post    string `json:"post"`
-	User_id int64  `json:"user_id"`
-}
-
-type PostWithUser struct {
-	Id         int64             `json:"id"`
-	Post       string            `json:"post"`
-	Created_at string            `json:"created_at"`
-	Updated_at sql.NullString    `json:"updated_at"`
-	User       users.UserPayload `json:"user"`
-}
-
-func CreatePost(post *Post, db *sql.DB) error {
+func CreatePost(post *models.Post, db *sql.DB) error {
 
 	if post.Post == "" {
 		return fmt.Errorf("post vacio")
@@ -45,7 +31,7 @@ func CreatePost(post *Post, db *sql.DB) error {
 	return nil
 }
 
-func GetPost(user_id int64, db *sql.DB) (PostWithUser, error) {
+func GetPost(user_id int64, db *sql.DB) (models.PostWithUser, error) {
 	query := `SELECT
 				p.id as id,
 				p.post,
@@ -61,7 +47,7 @@ func GetPost(user_id int64, db *sql.DB) (PostWithUser, error) {
 				INNER JOIN users as u ON u.id = p.user_id
 			WHERE p.id = ?`
 
-	post := PostWithUser{}
+	post := models.PostWithUser{}
 
 	err := db.QueryRow(query, user_id).Scan(
 		&post.Id,
