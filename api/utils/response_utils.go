@@ -6,7 +6,7 @@ import (
 )
 
 type PayloadResponse struct {
-	Message string `json:"message"`
+	Message string `json:"status"`
 	Data    any    `json:"data"`
 }
 
@@ -19,13 +19,22 @@ func WriteJson(data any, message string, status int, w http.ResponseWriter) erro
 	)
 }
 
-func ReturnOkStatus(data any, message string, status int, w http.ResponseWriter) {
-	WriteJson(data, message, status, w)
+func ReturnOkStatus(data any, status int, w http.ResponseWriter) {
+	WriteJson(data, "OK!", status, w)
 }
 
 func ReturnErrorStatus(err error, status int, w http.ResponseWriter) {
 	WriteJson(
 		map[string]string{"error": err.Error()},
+		"Error!",
+		status,
+		w,
+	)
+}
+
+func ReturnErrorArray(errors []string, status int, w http.ResponseWriter) {
+	WriteJson(
+		map[string][]string{"errors": errors},
 		"Error!",
 		status,
 		w,

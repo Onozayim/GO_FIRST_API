@@ -21,8 +21,7 @@ func (h *Handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ReturnOkStatus(
-		map[string]int64{"post_id": post.Id},
-		"Post creado",
+		map[string]string{"message": "Post creado!"},
 		http.StatusOK,
 		w,
 	)
@@ -46,5 +45,5 @@ func (h *Handler) handeGetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.ReturnOkStatus(post, "POST ENCONTRADO", http.StatusOK, w)
+	utils.ReturnOkStatus(post, http.StatusOK, w)
 }
