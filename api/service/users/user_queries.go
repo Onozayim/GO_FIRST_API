@@ -8,6 +8,21 @@ import (
 	"reflect"
 )
 
+func GetUserByEmail(db *sql.DB, email string) (*models.User, error) {
+	user := models.User{}
+
+	if err := db.QueryRow("SELECT id, username, email, password FROM users where email = ?",
+		email).Scan(&user.Id, &user.Username, &user.Email, &user.Password); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("usuario no encontrado")
+		}
+
+		return nil, fmt.Errorf("usuario no encontrado")
+	}
+
+	return &user, nil
+}
+
 func CreateUser(user *models.User, db *sql.DB) error {
 	if user.Username == "" {
 		return fmt.Errorf("username is empty")

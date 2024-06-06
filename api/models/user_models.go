@@ -9,6 +9,10 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type UserLogin struct {
+	Id int64 `json:"id"`
+}
+
 type UserQuery struct {
 	Id         int64          `json:"id"`
 	Username   string         `json:"username"`

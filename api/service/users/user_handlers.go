@@ -9,7 +9,42 @@ import (
 )
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "LOGIN")
+	user := models.User{}
+	user2 := &models.User{}
+	var err error
+
+	if err = utils.ValidateBody(&user, w, r); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	if !utils.ValidateEmail(user.Email) {
+		utils.ReturnErrorStatus(fmt.Errorf("email no valido"), http.StatusBadRequest, w)
+		return
+	}
+
+	if user2, err = GetUserByEmail(h.db, user.Email); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	if !auth.CheckPassword(user.Password, user2.Password) {
+		utils.ReturnErrorStatus(fmt.Errorf("las credenciales no coinciden"), http.StatusBadRequest, w)
+		return
+	}
+
+	token, err := auth.CreateToken(*user2)
+
+	if err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	utils.ReturnOkStatus(
+		map[string]string{"message": "Usuario Logeado!", "token": token},
+		http.StatusOK,
+		w,
+	)
 }
 
 func (h *Handler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +52,7 @@ func (h *Handler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var errors []string
 
-	if err = utils.ValidateBody(&user, w, r); err != nil {
+	if err = utils.ValidateBody(user, w, r); err != nil {
 		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
 		return
 	}
@@ -39,27 +74,31 @@ func (h *Handler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		errors = append(errors, "Email ya registrado")
 	}
 
-	if len(errors) != 0 {
-		utils.ReturnErrorArray(errors, http.StatusBadRequest, w)
-		return
-	}
-
 	hash, err := auth.HashPassword(user.Password)
 
 	if err != nil {
-		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
-		return
+		errors = append(errors, err.Error())
 	}
 
 	user.Password = hash
 
 	if err = CreateUser(&user, h.db); err != nil {
-		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		errors = append(errors, err.Error())
+	}
+
+	token, err := auth.CreateToken(user)
+
+	if err != nil {
+		errors = append(errors, err.Error())
+	}
+
+	if len(errors) != 0 {
+		utils.ReturnErrorArray(errors, http.StatusBadRequest, w)
 		return
 	}
 
 	utils.ReturnOkStatus(
-		map[string]string{"message": "Usuario Creado!"},
+		map[string]string{"message": "Usuario Creado!", "token": token},
 		http.StatusOK,
 		w,
 	)
