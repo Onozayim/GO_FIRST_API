@@ -1,6 +1,7 @@
 package posts
 
 import (
+	"api/auth"
 	"api/models"
 	"api/utils"
 	"net/http"
@@ -8,14 +9,21 @@ import (
 
 func (h *Handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	post := models.Post{}
+	user := models.User{}
+	ctx := r.Context()
 	var err error
+
+	if err = auth.GetUserNameFromContext(ctx, &user); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
 
 	if err = utils.ValidateBody(&post, w, r); err != nil {
 		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
 		return
 	}
 
-	if err = CreatePost(&post, h.db); err != nil {
+	if err = CreatePost(&post, &user, h.db); err != nil {
 		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
 		return
 	}

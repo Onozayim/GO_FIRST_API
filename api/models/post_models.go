@@ -3,9 +3,9 @@ package models
 import "database/sql"
 
 type Post struct {
-	Id      int64  `json:"id"`
-	Post    string `json:"post"`
-	User_id int64  `json:"user_id"`
+	Id   int64  `json:"id"`
+	Post string `json:"post"`
+	// User_id int64  `json:"user_id"`
 }
 
 type PostQuery struct {

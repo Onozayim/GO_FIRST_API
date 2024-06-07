@@ -11,6 +11,8 @@ func DbExists(db *sql.DB, query string, params ...any) bool {
 		if err == sql.ErrNoRows {
 			return false
 		}
+
+		return false
 	}
 
 	return true

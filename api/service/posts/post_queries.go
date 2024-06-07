@@ -7,14 +7,14 @@ import (
 	"fmt"
 )
 
-func CreatePost(post *models.Post, db *sql.DB) error {
+func CreatePost(post *models.Post, user *models.User, db *sql.DB) error {
 
 	if post.Post == "" {
 		return fmt.Errorf("post vacio")
 	}
 
 	query := "INSERT INTO posts (post, user_id) VALUES (?, ?)"
-	insertResult, err := db.ExecContext(context.Background(), query, post.Post, post.User_id)
+	insertResult, err := db.ExecContext(context.Background(), query, post.Post, user.Id)
 
 	if err != nil {
 		return err

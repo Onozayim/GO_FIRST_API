@@ -1,6 +1,7 @@
 package users
 
 import (
+	"api/auth"
 	"database/sql"
 	"net/http"
 )
@@ -18,6 +19,7 @@ func NewHandler(db *sql.DB) *Handler {
 func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("POST /user/login", h.handleLogin)
 	router.HandleFunc("GET /user/get_posts", h.handleGetPosts)
+	router.HandleFunc("GET /user/get_posts_with_jwt", auth.CheckAuth(h.handleGetPostsWithJWT))
 	router.HandleFunc("GET /user/get_all_users_posts", h.handleGetAllUsersPosts)
 
 	router.HandleFunc("POST /user/create", h.handleCreateUser)

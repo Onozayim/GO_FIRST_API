@@ -104,6 +104,31 @@ func (h *Handler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+func (h *Handler) handleGetPostsWithJWT(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var err error
+
+	user := models.User{}
+
+	if err = auth.GetUserNameFromContext(ctx, &user); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	data, err := GetUserPosts(user.Id, h.db)
+
+	if err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	utils.ReturnOkStatus(
+		data,
+		http.StatusOK,
+		w,
+	)
+}
+
 func (h *Handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
 	body := struct {
 		User_id int64 `json:"user_id"`

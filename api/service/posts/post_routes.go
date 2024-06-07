@@ -1,6 +1,7 @@
 package posts
 
 import (
+	"api/auth"
 	"database/sql"
 	"net/http"
 )
@@ -18,5 +19,5 @@ func NewHandler(db *sql.DB) *Handler {
 func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /post/get", h.handeGetPost)
 
-	router.HandleFunc("POST /post/create", h.handleCreatePost)
+	router.HandleFunc("POST /post/create", auth.CheckAuth(h.handleCreatePost))
 }
