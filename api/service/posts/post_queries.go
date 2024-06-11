@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 func CreatePost(post *models.Post, user *models.User, db *sql.DB) error {
@@ -84,6 +86,11 @@ func CreateBulkPost(posts *[]models.Post, user *models.User, db *sql.DB) error {
 
 	for _, chunk := range chunkList {
 		go func(chunk []models.Post, tx *sql.Tx, errorChanel chan<- error) {
+			delay := rand.Intn(500)
+			time.Sleep(time.Millisecond * time.Duration(delay))
+
+			log.Println("now")
+
 			valueStrings := []string{}
 			valueArgs := []interface{}{}
 
@@ -92,41 +99,31 @@ func CreateBulkPost(posts *[]models.Post, user *models.User, db *sql.DB) error {
 				valueArgs = append(valueArgs, post.Post)
 				valueArgs = append(valueArgs, user.Id)
 			}
+
 			stmt := fmt.Sprintf("INSERT INTO posts (post, user_id) VALUES %s", strings.Join(valueStrings, ","))
 
 			if _, err := tx.Exec(stmt, valueArgs...); err != nil {
-				log.Println("error")
 				errorChannel <- errors.New("error")
 				return
 			}
 
 			errorChannel <- nil
-			// log.Println("error chanel is nil")
-			// close(errorChanel)
 		}(chunk, tx, errorChannel)
 	}
-
-	log.Println("done")
 
 	i := 0
 	for err := range errorChannel {
 		if err != nil {
-			log.Println("error")
-			panic(err)
+			tx.Rollback()
+			return fmt.Errorf("un error inesperado ah ocurrido")
 		} else {
-			log.Println("hihihi")
 			i++
-
 			if i == len(chunkList) {
-				log.Println("close")
 				close(errorChannel)
 			}
 		}
 	}
 
-	close(errorChannel)
-
 	tx.Commit()
-
 	return nil
 }
