@@ -55,3 +55,30 @@ func (h *Handler) handeGetPost(w http.ResponseWriter, r *http.Request) {
 
 	utils.ReturnOkStatus(post, http.StatusOK, w)
 }
+
+func (h *Handler) handleBulk(w http.ResponseWriter, r *http.Request) {
+	post := []models.Post{}
+	user := models.User{}
+	ctx := r.Context()
+	var err error
+
+	if err = auth.GetUserNameFromContext(ctx, &user); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+	if err = utils.ValidateBody(&post, w, r); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	if err = CreateBulkPost(&post, &user, h.db); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	utils.ReturnOkStatus(
+		map[string]string{"message": "Posts creados!"},
+		http.StatusOK,
+		w,
+	)
+}

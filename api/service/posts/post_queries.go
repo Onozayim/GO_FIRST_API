@@ -2,9 +2,13 @@ package posts
 
 import (
 	"api/models"
+	"api/utils"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
+	"strings"
 )
 
 func CreatePost(post *models.Post, user *models.User, db *sql.DB) error {
@@ -66,4 +70,63 @@ func GetPost(user_id int64, db *sql.DB) (models.PostWithUser, error) {
 	}
 
 	return post, err
+}
+
+func CreateBulkPost(posts *[]models.Post, user *models.User, db *sql.DB) error {
+	chunkList := utils.ChunkSlicePosts(*posts, 2)
+	errorChannel := make(chan error, len(chunkList))
+
+	tx, err := db.Begin()
+
+	if err != nil {
+		return fmt.Errorf("un error inesperado ha ocurrido")
+	}
+
+	for _, chunk := range chunkList {
+		go func(chunk []models.Post, tx *sql.Tx, errorChanel chan<- error) {
+			valueStrings := []string{}
+			valueArgs := []interface{}{}
+
+			for _, post := range chunk {
+				valueStrings = append(valueStrings, "(?, ?)")
+				valueArgs = append(valueArgs, post.Post)
+				valueArgs = append(valueArgs, user.Id)
+			}
+			stmt := fmt.Sprintf("INSERT INTO posts (post, user_id) VALUES %s", strings.Join(valueStrings, ","))
+
+			if _, err := tx.Exec(stmt, valueArgs...); err != nil {
+				log.Println("error")
+				errorChannel <- errors.New("error")
+				return
+			}
+
+			errorChannel <- nil
+			// log.Println("error chanel is nil")
+			// close(errorChanel)
+		}(chunk, tx, errorChannel)
+	}
+
+	log.Println("done")
+
+	i := 0
+	for err := range errorChannel {
+		if err != nil {
+			log.Println("error")
+			panic(err)
+		} else {
+			log.Println("hihihi")
+			i++
+
+			if i == len(chunkList) {
+				log.Println("close")
+				close(errorChannel)
+			}
+		}
+	}
+
+	close(errorChannel)
+
+	tx.Commit()
+
+	return nil
 }
