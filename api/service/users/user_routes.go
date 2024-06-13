@@ -23,4 +23,5 @@ func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /user/get_all_users_posts", h.handleGetAllUsersPosts)
 
 	router.HandleFunc("POST /user/create", h.handleCreateUser)
+	router.HandleFunc("POST /user/email", auth.CheckAuth(h.handleSendEmail))
 }

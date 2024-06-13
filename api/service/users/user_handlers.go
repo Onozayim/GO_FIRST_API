@@ -168,3 +168,31 @@ func (h *Handler) handleGetAllUsersPosts(w http.ResponseWriter, r *http.Request)
 		w,
 	)
 }
+
+func (h *Handler) handleSendEmail(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var err error
+
+	user := models.User{}
+
+	if err = auth.GetUserNameFromContext(ctx, &user); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	if err = utils.SendEmailHTML(
+		"Prueba",
+		[]string{user.Email},
+		"./templates/mails/test.html",
+		struct{ Name string }{Name: user.Username},
+	); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	utils.ReturnOkStatus(
+		map[string]string{"status": "done"},
+		http.StatusOK,
+		w,
+	)
+}
