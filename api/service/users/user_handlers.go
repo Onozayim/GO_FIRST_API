@@ -196,3 +196,33 @@ func (h *Handler) handleSendEmail(w http.ResponseWriter, r *http.Request) {
 		w,
 	)
 }
+
+func (h *Handler) handlePostProfilePicture(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var err error
+
+	user := models.User{}
+
+	if err = auth.GetUserNameFromContext(ctx, &user); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	file, handler, err := r.FormFile("picture")
+
+	if err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	if err = utils.SaveFile(file, handler, "", true); err != nil {
+		utils.ReturnErrorStatus(err, http.StatusBadRequest, w)
+		return
+	}
+
+	utils.ReturnOkStatus(
+		map[string]string{"status": "done"},
+		http.StatusOK,
+		w,
+	)
+}

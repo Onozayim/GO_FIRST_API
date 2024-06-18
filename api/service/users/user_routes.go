@@ -24,4 +24,5 @@ func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 
 	router.HandleFunc("POST /user/create", h.handleCreateUser)
 	router.HandleFunc("POST /user/email", auth.CheckAuth(h.handleSendEmail))
+	router.HandleFunc("POST /user/upload_image", auth.CheckAuth(h.handlePostProfilePicture))
 }

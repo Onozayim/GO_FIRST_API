@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"path/filepath"
 )
 
 type APIServer struct {
@@ -25,6 +26,10 @@ func (s *APIServer) Run() error {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "api World")
+	})
+
+	mux.HandleFunc("GET /public/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, filepath.Join(".", "", r.URL.String()))
 	})
 
 	userHandler := users.NewHandler(s.db)
